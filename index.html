@@ -19,18 +19,29 @@
     }
 </style>
 <script>
-
+'use strict'
     class TicTacToe {
         constructor(props) {
             this.__createCanvas();
-            let tile = new Tile(20, 20, this.ctx);
-            console.log(tile)
+            this.tile = new Tile(10, 10, this.ctx);
         }
         __createCanvas() {
             this.canvas = document.createElement('canvas');
             this.canvas.width = this.canvas.height = 200;
             this.canvas.id = "tic-tac-toe"
             this.ctx = this.canvas.getContext('2d');
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeStyle = 'white'
+            this.ctx.lineCap = 'round'
+            this.canvas.addEventListener('click', this.__click)
+        }
+        __click(e) {
+            let mouseX = e.clientX - this.canvas.offsetLeft;
+            let mouseY = e.clientY - this.canvas.offsetTop;
+                if (mouseX > this.tile.x && mouseX < this.tile.x + this.tile.width && mouseY < this.tile.y + this.tile.width && mouseY > this.tile.x)
+                    {
+                        console.log('a')
+                    }
         }
     }
 
@@ -38,21 +49,23 @@
         constructor(x, y, ctx) {
             this.x = x;
             this.y = y;
+            this.padding = 10;
+            this.width = this.height = 70
 
             this.tile = Tile.blank;
 
             if (this.tile == null) {
                 this.element = document.createElement('canvas');
-                this.element.width = this.element.height = 80;
+                this.element.width = this.element.height = this.width;
 
                 this.ctx = this.element.getContext('2d');
-                this.ctx.fillStyle = 'blue';
+                this.ctx.fillStyle = "#0095DD";
                 this.ctx.lineWidth = 3;
                 this.ctx.strokeStyle = 'white'
                 this.ctx.lineCap = 'round'
 
                 //blank
-                this.ctx.fillRect(0, 0 ,80, 80);
+                this.ctx.fillRect(0, 0 ,this.width, this.height);
 
                 Tile.blank = new Image();
                 Tile.blank.src = this.element.toDataURL();
@@ -71,27 +84,74 @@
                 this.ctx.fillRect(0, 0, 80, 80);
 
                 this.ctx.beginPath();
-                this.ctx.moveTo(10, 10);
-                this.ctx.lineTo(70, 70);
-                this.ctx.moveTo(10, 70);
-                this.ctx.lineTo(70, 10);
+                this.ctx.moveTo(this.padding, this.padding);
+                this.ctx.lineTo(this.width - this.padding, this.width - this.padding);
+                this.ctx.moveTo(this.padding, this.width - this.padding);
+                this.ctx.lineTo(this.width - this.padding, this.padding);
                 this.ctx.stroke();
 
                 Tile.cross = new Image();
                 Tile.cross.src = this.element.toDataURL();
 
-                //
-
-                this.tile = Tile.cross
             }
 
-            this.__draw(ctx)
+            this.__drawCross(ctx)
         }
         __update() {
 
         }
-        __draw(ctx) {
-            ctx.drawImage(this.tile, this.x, this.y)
+        __drawCross(ctx) {
+            let cross = {
+                x: this.x + this.padding,
+                y: this.y + this.padding,
+                position: 'left',
+                speed: this.width * 3 * 0.016
+            }
+
+            ctx.beginPath();
+            ctx.rect(this.x, this.y, this.width, this.height);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+
+            let animation = () => {
+                switch(cross.position) {
+                    case ('left'):
+                        if (cross.x <= this.x + this.width - this.padding) {
+                            ctx.beginPath()
+                            ctx.moveTo(cross.x, cross.y);
+                            cross.x = cross.x + cross.speed;
+                            cross.y = cross.y + cross.speed;
+                            ctx.lineTo(cross.x, cross.y);
+                            ctx.stroke();
+                            requestAnimationFrame(animation)
+                        }
+                        else {
+                            cross.position = 'right';
+                            cross.x = this.x + this.width - this.padding;
+                            cross.y = this.y + this.padding;
+                            animation();
+                        }
+                        break;
+                    case ('right'):
+                        if (cross.x >= this.x + this.padding) {
+                            ctx.beginPath()
+                            ctx.moveTo(cross.x, cross.y);
+                            cross.x = cross.x - cross.speed;
+                            cross.y = cross.y + cross.speed;
+                            ctx.lineTo(cross.x, cross.y);
+                            ctx.stroke();
+                            requestAnimationFrame(animation)
+                        }
+                        else {
+                            this.tile = Tile.cross
+                            ctx.drawImage(this.tile, this.x, this.y)
+                        }
+                }
+
+            };
+
+            return animation()
         }
     }
 
