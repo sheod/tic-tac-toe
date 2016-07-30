@@ -21,141 +21,345 @@
 <script>
 'use strict'
     class TicTacToe {
-        constructor(props) {
+        constructor(players) {
+            this.players = players
             this.__createCanvas();
-            this.tile = new Tile(10, 10, this.ctx);
+            this.__drawTiles()
         }
         __createCanvas() {
             this.canvas = document.createElement('canvas');
-            this.canvas.width = this.canvas.height = 200;
-            this.canvas.id = "tic-tac-toe"
+            this.canvas.width = this.canvas.height = 300;
+            this.canvas.id = "tic-tac-toe";
+
+            this.tileCount = 6;
+            this.victory = 3;
+
+            this.tiles = [];
+            this.tileMargin = this.canvas.width / this.tileCount / 10;
+            this.tilePadding = this.canvas.width / this.tileCount / 6;
+            this.tileSide = Math.round(((this.canvas.width - this.tileMargin * (this.tileCount + 1)) / this.tileCount));
+
             this.ctx = this.canvas.getContext('2d');
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeStyle = 'white'
-            this.ctx.lineCap = 'round'
-            this.canvas.addEventListener('click', this.__click)
+            this.ctx.lineWidth = 9 / this.tileCount;
+            this.ctx.strokeStyle = 'white';
+            this.ctx.lineCap = 'round';
+
+            this.canvas.addEventListener('click', this.__click.bind(this));
+
         }
-        __click(e) {
-            let mouseX = e.clientX - this.canvas.offsetLeft;
-            let mouseY = e.clientY - this.canvas.offsetTop;
-                if (mouseX > this.tile.x && mouseX < this.tile.x + this.tile.width && mouseY < this.tile.y + this.tile.width && mouseY > this.tile.x)
-                    {
-                        console.log('a')
+        __click() {
+                let mouseX = window.event.clientX - this.canvas.offsetLeft;
+                let mouseY = window.event.clientY - this.canvas.offsetTop;
+
+                for (let r = 0; r < this.tileCount; r++) {
+
+                    for (let c = 0; c < this.tileCount; c++) {
+
+                        if (mouseX > this.tiles[r][c].x && mouseX < this.tiles[r][c].x + this.tileSide && mouseY < this.tiles[r][c].y + this.tileSide && mouseY > this.tiles[r][c].y) {
+
+                            if (this.tiles[r][c].status === 'blank') {
+                                for (let i = 0; i < this.players.length; i++) {
+                                    this.__whoseTurn(r, c, this.players[i]);
+                                }
+                            }
+
+                        }
+
                     }
+                }
+        }
+
+        __whoseTurn(r, c, player) {
+            if (player.turn === true) {
+
+                switch (player.figure) {
+                    case ('cross'):
+                        this.tiles[r][c].drawCross();
+                        break;
+                    case ('circle'): {
+                        this.tiles[r][c].drawCircle();
+                        break;
+                    }
+                }
+
+                this.__checkVictory(r, c, player)
+
+                if (this.victory === player.victoryCounter) {
+                    console.log(`Победил - ${player.name}`)
+                }
+
+
+                player.turn = false;
+            }
+            else {
+                player.turn = true;
+            }
+        }
+
+        __checkVictory(r, c, player) {
+            // winning check
+            //row
+            for (let j = 1; j < this.victory; j++) {
+                if (c - j >= 0) {
+                    if (this.tiles[r][c - j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            for (let j = 1; j < this.victory; j++) {
+                if (c + j < this.tileCount) {
+                    if (this.tiles[r][c + j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            if (player.victoryCounter != this.victory) {
+                player.victoryCounter = 1;
+            }
+            //
+
+            //column
+            for (let j = 1; j < this.victory; j++) {
+                if (r - j >= 0) {
+                    if (this.tiles[r - j][c].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            for (let j = 1; j < this.victory; j++) {
+                if (r + j < this.tileCount) {
+                    if (this.tiles[r + j][c].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            if (player.victoryCounter != this.victory) {
+                player.victoryCounter = 1;
+            }
+
+
+            //
+            for (let j = 1; j < this.victory; j++) {
+                if (r - j >= 0 && c - j >= 0) {
+                    if (this.tiles[r - j][c - j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            for (let j = 1; j < this.victory; j++) {
+                if (r + j < this.tileCount && c + j < this.tileCount) {
+                    if (this.tiles[r + j][c + j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            if (player.victoryCounter != this.victory) {
+                player.victoryCounter = 1;
+            }
+            //
+            for (let j = 1; j < this.victory; j++) {
+                if (r + j < this.tileCount && c - j >= 0) {
+                    if (this.tiles[r + j][c - j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            for (let j = 1; j < this.victory; j++) {
+                if (r - j >= 0 && c + j < this.tileCount) {
+                    if (this.tiles[r - j][c + j].status === player.figure) {
+                        player.victoryCounter++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            if (player.victoryCounter != this.victory) {
+                player.victoryCounter = 1;
+            }
+
+        }
+
+        __drawTiles () {
+
+            for (let r = 0; r < this.tileCount; r++)
+            {
+                this.tiles[r] = [];
+                for (let c = 0; c < this.tileCount; c++)
+                {
+                    let x = Math.round( c *(this.tileSide + this.tileMargin) + this.tileMargin );
+                    let y = Math.round( r *(this.tileSide + this.tileMargin) + this.tileMargin );
+
+                    this.tiles[r][c] = new Tile(x, y, this.ctx, this.tileSide, this.tilePadding);
+                }
+            }
+        }
+    }
+
+    class Player {
+        constructor(props) {
+            this.name = props.name;
+            this.figure = props.figure;
+            this.turn = props.turn;
+            this.victoryCounter = 1;
         }
     }
 
     class Tile {
-        constructor(x, y, ctx) {
+        constructor(x, y, ctx, side, padding) {
             this.x = x;
             this.y = y;
-            this.padding = 10;
-            this.width = this.height = 70
+            this.padding = padding;
+            this.side = side;
+            this.ctx = ctx;
+            this.status = 'blank';
 
-            this.tile = Tile.blank;
-
-            if (this.tile == null) {
-                this.element = document.createElement('canvas');
-                this.element.width = this.element.height = this.width;
-
-                this.ctx = this.element.getContext('2d');
-                this.ctx.fillStyle = "#0095DD";
-                this.ctx.lineWidth = 3;
-                this.ctx.strokeStyle = 'white'
-                this.ctx.lineCap = 'round'
-
-                //blank
-                this.ctx.fillRect(0, 0 ,this.width, this.height);
-
-                Tile.blank = new Image();
-                Tile.blank.src = this.element.toDataURL();
-
-                //circle
-                this.ctx.fillRect(0, 0, 80, 80);
-
-                this.ctx.beginPath();
-                this.ctx.arc(80/2, 80/2, 80/2 - 10, 0, 2*Math.PI);
-                this.ctx.stroke();
-
-                Tile.cirlce = new Image();
-                Tile.cirlce.src = this.element.toDataURL();
-
-                //cross
-                this.ctx.fillRect(0, 0, 80, 80);
-
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.padding, this.padding);
-                this.ctx.lineTo(this.width - this.padding, this.width - this.padding);
-                this.ctx.moveTo(this.padding, this.width - this.padding);
-                this.ctx.lineTo(this.width - this.padding, this.padding);
-                this.ctx.stroke();
-
-                Tile.cross = new Image();
-                Tile.cross.src = this.element.toDataURL();
-
-            }
-
-            this.__drawCross(ctx)
+            this.ctx.beginPath();
+            this.ctx.rect(this.x, this.y, this.side, this.side);
+            this.ctx.fillStyle = "#0095DD";
+            this.ctx.fill();
+            this.ctx.closePath()
         }
-        __update() {
 
-        }
-        __drawCross(ctx) {
+        drawCross() {
             let cross = {
                 x: this.x + this.padding,
                 y: this.y + this.padding,
                 position: 'left',
-                speed: this.width * 3 * 0.016
-            }
+                speed: this.side * 3 * 0.016
+            };
 
-            ctx.beginPath();
-            ctx.rect(this.x, this.y, this.width, this.height);
-            ctx.fillStyle = "#0095DD";
-            ctx.fill();
-            ctx.closePath();
+            this.status = 'cross';
+
+            this.ctx.clearRect(this.x , this.y, this.side, this.side);
+
+            this.ctx.beginPath();
+            this.ctx.rect(this.x, this.y, this.side, this.side);
+            this.ctx.fillStyle = "#0095DD";
+            this.ctx.fill();
+            this.ctx.closePath()
 
             let animation = () => {
                 switch(cross.position) {
                     case ('left'):
-                        if (cross.x <= this.x + this.width - this.padding) {
-                            ctx.beginPath()
-                            ctx.moveTo(cross.x, cross.y);
+                        if (cross.x <= this.x + this.side - this.padding) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(cross.x, cross.y);
                             cross.x = cross.x + cross.speed;
                             cross.y = cross.y + cross.speed;
-                            ctx.lineTo(cross.x, cross.y);
-                            ctx.stroke();
+                            this.ctx.lineTo(cross.x, cross.y);
+                            this.ctx.stroke();
+                            this.ctx.closePath()
+
                             requestAnimationFrame(animation)
                         }
                         else {
                             cross.position = 'right';
-                            cross.x = this.x + this.width - this.padding;
+                            cross.x = this.x + this.side - this.padding;
                             cross.y = this.y + this.padding;
+
                             animation();
                         }
                         break;
                     case ('right'):
                         if (cross.x >= this.x + this.padding) {
-                            ctx.beginPath()
-                            ctx.moveTo(cross.x, cross.y);
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(cross.x, cross.y);
                             cross.x = cross.x - cross.speed;
                             cross.y = cross.y + cross.speed;
-                            ctx.lineTo(cross.x, cross.y);
-                            ctx.stroke();
+                            this.ctx.lineTo(cross.x, cross.y);
+                            this.ctx.stroke();
+                            this.ctx.closePath()
+
                             requestAnimationFrame(animation)
                         }
-                        else {
-                            this.tile = Tile.cross
-                            ctx.drawImage(this.tile, this.x, this.y)
-                        }
+
                 }
 
             };
 
             return animation()
         }
+
+        drawCircle() {
+            let circle = {
+                x: this.x + this.side/2,
+                y: this.y + this.side/2,
+                radius: (this.side - this.padding) / 2,
+                speed: 200 * 0.016,
+                quart: Math.PI / 2,
+                fullCircle: Math.PI * 2,
+                percent: 0
+            };
+
+            this.status = 'circle'
+
+            let animation = () => {
+                this.ctx.clearRect(this.x , this.y, this.side, this.side);
+
+                this.ctx.beginPath();
+                this.ctx.rect(this.x, this.y, this.side, this.side);
+                this.ctx.fillStyle = "#0095DD";
+                this.ctx.fill();
+                this.ctx.closePath()
+
+                this.ctx.beginPath();
+                this.ctx.arc(circle.x, circle.y, circle.radius, -(circle.quart), ((circle.fullCircle) * circle.percent/100) - circle.quart, false);
+                this.ctx.stroke();
+                this.ctx.closePath()
+
+                if (circle.percent < 100) {
+                    circle.percent = circle.percent + circle.speed;
+                    requestAnimationFrame(animation)
+                }
+
+            };
+
+            return animation()
+
+        }
     }
 
-    let game = new TicTacToe()
+    let firstPlayer = new Player({
+        name: 'Player 1',
+        figure: 'cross',
+        turn: true
+    });
+
+    let secondPlayer = new Player({
+        name: 'Player 2',
+        figure: 'circle',
+        turn: false,
+    });
+
+    let game = new TicTacToe([firstPlayer, secondPlayer]);
 
 /*DOMContentLoaded*/
     window.addEventListener('DOMContentLoaded', function() {
